@@ -1,0 +1,32 @@
+image: docker:18
+
+services:
+  - name: docker:dind
+
+stages:
+  - build
+
+before_script:
+  - echo -n $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
+
+x86:
+  stage: build
+  only:
+    - master
+  script:
+    - cd server
+    - docker build -t alexa_shopping_list_sync:$CI_COMMIT_SHA .
+    - docker tag alexa_shopping_list_sync:$CI_COMMIT_SHA alexa_shopping_list_sync:latest
+    - docker push alexa_shopping_list_sync:latest
+
+arm64:
+  stage: build
+  tags:
+    - saas-linux-small-amd64
+  only:
+    - master
+  script:
+    - cd server
+    - docker build -t alexa_shopping_list_sync:$CI_COMMIT_SHA .
+    - docker tag alexa_shopping_list_sync:$CI_COMMIT_SHA alexa_shopping_list_sync:latest
+    - docker push alexa_shopping_list_sync:latest
