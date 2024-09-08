@@ -12,7 +12,7 @@ before_script:
 x86:
   stage: build
   only:
-    - master
+    - main
   script:
     - cd server
     - docker build -t alexa_shopping_list_sync:$CI_COMMIT_SHA .
@@ -24,7 +24,7 @@ arm64:
   tags:
     - saas-linux-small-amd64
   only:
-    - master
+    - main
   script:
     - cd server
     - docker build -t alexa_shopping_list_sync:$CI_COMMIT_SHA .
