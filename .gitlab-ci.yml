@@ -22,7 +22,7 @@ x86:
 arm64:
   stage: build
   tags:
-    - saas-linux-small-arm64
+    - saas-linux-medium-arm64
   only:
     - main
   script:
