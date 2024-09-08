@@ -15,18 +15,18 @@ x86:
     - main
   script:
     - cd server
-    - docker build -t alexa_shopping_list_sync:$CI_COMMIT_SHA .
-    - docker tag alexa_shopping_list_sync:$CI_COMMIT_SHA alexa_shopping_list_sync:latest
-    - docker push alexa_shopping_list_sync:latest
+    - docker build --platform linux/amd64,linux/arm64 -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:latest
 
-arm64:
-  stage: build
-  tags:
-    - saas-linux-medium-arm64
-  only:
-    - main
-  script:
-    - cd server
-    - docker build -t alexa_shopping_list_sync:$CI_COMMIT_SHA .
-    - docker tag alexa_shopping_list_sync:$CI_COMMIT_SHA alexa_shopping_list_sync:latest
-    - docker push alexa_shopping_list_sync:latest
+# arm64:
+#   stage: build
+#   tags:
+#     - saas-linux-medium-arm64
+#   only:
+#     - main
+#   script:
+#     - cd server
+#     - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
+#     - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
+#     - docker push $CI_REGISTRY_IMAGE:latest
