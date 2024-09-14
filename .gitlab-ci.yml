@@ -15,17 +15,24 @@ before_script:
   - docker buildx create --name multiarch-builder --use
   - docker buildx inspect --bootstrap
 
-containers:
+gitlab:
   stage: build
   script:
     - cd server
     - echo -n $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
     - docker buildx build --platform linux/amd64,linux/arm64 -t $CI_REGISTRY_IMAGE:latest --push .
     - docker logout
+  only:
+    - main
+
+docker hub:
+  stage: build
+  script:
+    - cd server
     - echo -n $DOCKERHUB_ACCESS_TOKEN | docker login -u madmachinations --password-stdin
-    - docker tag $CI_REGISTRY_IMAGE:latest madmachinations/ha-alexa-shopping-list-sync:$IMAGE_VERSION
+    - docker buildx build --platform linux/amd64,linux/arm64 -t madmachinations/ha-alexa-shopping-list-sync:latest --push .
+    - docker tag madmachinations/ha-alexa-shopping-list-sync:latest madmachinations/ha-alexa-shopping-list-sync:$IMAGE_VERSION
     - docker push madmachinations/ha-alexa-shopping-list-sync:$IMAGE_VERSION
-    - docker tag $CI_REGISTRY_IMAGE:latest madmachinations/ha-alexa-shopping-list-sync:latest
-    - docker push madmachinations/ha-alexa-shopping-list-sync:latest
+    - docker logout
   only:
     - main
