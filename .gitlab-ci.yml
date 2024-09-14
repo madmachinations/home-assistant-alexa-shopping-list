@@ -10,7 +10,6 @@ services:
 
 before_script:
   - export IMAGE_VERSION=$(date +"%y-%m-%d")
-  - echo "Image Version: $IMAGE_VERSION"
   - |
     docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   - docker buildx create --name multiarch-builder --use
