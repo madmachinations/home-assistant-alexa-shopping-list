@@ -17,6 +17,7 @@ before_script:
 build_containers:
   stage: build
   script:
+    - cd server
     - docker buildx build --platform linux/amd64,linux/arm64 -t $CI_REGISTRY_IMAGE:latest --push .
   only:
     - main
