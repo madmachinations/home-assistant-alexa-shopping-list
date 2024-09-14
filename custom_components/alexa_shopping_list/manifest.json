@@ -1,0 +1,12 @@
+{
+    "domain": "alexa_shopping_list",
+    "name": "Alexa Shopping List",
+    "codeowners": ["@madmachinations"],
+    "dependencies": ["shopping_list"],
+    "documentation": "https://gitlab.com/home-assistant-components/todoist-shopping-list/-/blob/main/README.md",
+    "integration_type": "hub",
+    "iot_class": "cloud_polling",
+    "requirements": ["websockets"],
+    "version": "0.1.0",
+    "config_flow": true
+  }

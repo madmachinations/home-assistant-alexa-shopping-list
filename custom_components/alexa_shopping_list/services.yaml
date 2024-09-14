@@ -1,0 +1,3 @@
+sync_alexa_shopping_list:
+  description: Sync the Alexa shopping list with Home Assistant.
+  fields: {}

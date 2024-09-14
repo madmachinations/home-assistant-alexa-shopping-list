@@ -1,0 +1,29 @@
+{
+    "config": {
+        "error": {
+            "connection_failed": "Unable to connect to server, please check connection details.",
+            "server_not_setup": "Sync server has not been configured, please set it up first.",
+            "server_not_authenticated": "Sync server is not authenticated with Amazon, please set it up first."
+        },
+        "step": {
+
+            "server": {
+                "data": {
+                    "server_ip": "IP Address",
+                    "server_port": "Port"
+                },
+                "description": "Connection details for your Alexa Shopping List Sync Server",
+                "title": "Sync-Server Connection"
+            },
+
+            "sync_mins": {
+                "data": {
+                    "sync_mins": "Number of minutes between synchronisation"
+                },
+                "description": "How often in minutes should the lists be synchronised. Recommended is once every 60 minutes. Don't spam it.",
+                "title": "Synchronisation time"
+            }
+
+        }
+    }
+}
