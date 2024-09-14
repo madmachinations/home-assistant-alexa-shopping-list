@@ -110,7 +110,7 @@ If this is the first time using the client, install it's dependencies with somet
 
 `pip3 install --user -r requirements.txt`
 
-Now we are ready to run the client and configure out server.
+Now we are ready to run the client and configure our server.
 
 The client is opened like this:
 
@@ -130,7 +130,7 @@ If the server is _not_ yet configured, the configuration process will start:
 4) Assuming all of this went to plan, the server should now be authenticated with your account on the Amazon website.
 5) You will now find yourself on the client command line, you can just type `quit` and press enter to close it, or press `ctrl + c`. If you have things on your alexa shopping list already, you can check if you can see them by typing `list` and pressing enter. After 5-10 seconds you should see your shopping list in the terminal.
 
-As far as Amazon is concerned, this is you opened the website in chromium and using your account to use the shopping list.
+As far as Amazon is concerned, this is like you opening the website in chromium and using your account to use the shopping list.
 
 Your actual login credentials, your email and password, are NOT stored anywhere. They are used to perform the login, and they are forgotten immediately after this.
 
@@ -153,7 +153,7 @@ This component connects to the server and uses it to keep your HA shopping list 
 2) Copy the `alexa_shopping_list` folder out of _this_ repository's `custom_components` folder and paste it into _your HA's_ `custom_components` folder.
 3) Restart Home Assistant and wait for it to reload
 4) In HA, go to Settings > Devices & Integrations and press Add integration. Find `Alexa Shopping List` and click on that to start the configuration process
-5) The first config screen will ask you to enter the IP address and port number of the server we installed earlier. Enter your IP address, and the default portis 4000. Press next and the component will check if it can connect.
+5) The first config screen will ask you to enter the IP address and port number of the server we installed earlier. Enter your IP address, and the default port is 4000. Press next and the component will check if it can connect.
 6) Once a successful connection is established to the server, it will ask you how frequently you want to synchronise the shopping list in minutes. I am running mine every 60 minutes. There is also a server which you can call at any time to force it to synchronise now. Choose a figure that is reasonable, don't spam it.
 7) That's it! After a few moments, your HA shopping list should be replaced with whatever is on your alexa shopping list.
 
