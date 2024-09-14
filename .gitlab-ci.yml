@@ -1,32 +1,22 @@
-image: docker:18
+image: docker:24.0
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_BUILDKIT: 1
 
 services:
-  - name: docker:dind
-
-stages:
-  - build
+  - docker:dind
 
 before_script:
   - echo -n $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
+  - |
+    docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  - docker buildx create --name multiarch-builder --use
+  - docker buildx inspect --bootstrap
 
-x86_64:
+build_containers:
   stage: build
-  only:
-    - main
   script:
-    - cd server
-    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
-    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
-    - docker push $CI_REGISTRY_IMAGE:latest
-
-# arm64:
-#   stage: build
-#   tags:
-#     - saas-linux-medium-arm64
-#   only:
-#     - main
-#   script:
-#     - cd server
-#     - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA .
-#     - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
-#     - docker push $CI_REGISTRY_IMAGE:latest
+    - docker buildx build --platform linux/amd64,linux/arm64 -t $CI_REGISTRY_IMAGE:latest --push .
+  only:
+    - master
