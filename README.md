@@ -36,6 +36,8 @@ You can find pre-built containers on docker hub here:
 
 https://hub.docker.com/r/madmachinations/ha-alexa-shopping-list-sync
 
+**When you run the container, make sure you mount a local directory into the container's `/config` path. This is where configuration and session data will be persisted.**
+
 These have been built for x86_64 and arm64 environments, so should run fine on most rigs.
 
 However I'm not sure about older raspberry pi's and such.
@@ -47,6 +49,8 @@ The container generally doesn't use much system resources, it peaks when it's us
 1) Download this repository
 2) `cd` into the `server` directory
 3) Run your `docker build ...` command
+
+When you run the container, make sure you mount a local directory into the container's `/config` path. This is where configuration and session data will be persisted.
 
 ### Non-containerised with systemd
 
