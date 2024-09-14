@@ -31,8 +31,6 @@ docker hub:
     - cd server
     - echo -n $DOCKERHUB_ACCESS_TOKEN | docker login -u madmachinations --password-stdin
     - docker buildx build --platform linux/amd64,linux/arm64 -t madmachinations/ha-alexa-shopping-list-sync:latest --push .
-    - docker tag madmachinations/ha-alexa-shopping-list-sync:latest madmachinations/ha-alexa-shopping-list-sync:$IMAGE_VERSION
-    - docker push madmachinations/ha-alexa-shopping-list-sync:$IMAGE_VERSION
     - docker logout
   only:
     - main
