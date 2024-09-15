@@ -11,14 +11,6 @@ It is made of two main parts:
 - **The Server** - This is a small Selenium based application, which accesses your shopping list on the Amazon Website.
 - **The Component** - This is the part you add to your Home Assistant installation. It connects to the server to periodically sync the shopping lists in both places
 
-## HASS OS
-
-Generally this should run on most setups. However, I'm not sure about HASS OS.
-
-Running this requires you are able to setup the server-side of this solution in some capacity. HASS OS is a purely containerised environment, and is technically capable of running third party containers. However this is generally discouraged apparantly.
-
-You need to look into the documentation for HASS OS to configure your environment to run additional containers, if you want to keep using HASS OS and run this component.
-
 
 ## Step 1 -  Installing the server
 
@@ -43,6 +35,14 @@ These have been built for x86_64 and arm64 environments, so should run fine on m
 However I'm not sure about older raspberry pi's and such.
 
 The container generally doesn't use much system resources, it peaks when it's using the sync, as this is when the headless browser is being loaded and used. But when it is not synchronising, it just idles waiting for a signal to do something.
+
+### Hass Add-on
+
+There is a HASS OS Add-on of the server.
+
+Add this repository to your installation, and install the alexa shopping list add on:
+
+`https://gitlab.com/home-assistant-components/hass-addons`
 
 ### Build your own container image
 
