@@ -1,0 +1,5 @@
+{
+    "name": "Alexa Shopping List",
+    "content_in_root": false,
+    "domains": ["alexa_shopping_list"]
+  }
