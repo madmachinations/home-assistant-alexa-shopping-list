@@ -37,7 +37,7 @@ async def async_setup_entry(hass, entry):
     hass.data[DOMAIN][entry.entry_id] = alexa
     await hass.config_entries.async_forward_entry_setup(entry, "sensor")
 
-    services = AlexaServices(alexa, _LOGGER)
+    services = AlexaServices(alexa, _LOGGER, hass)
     hass.services.async_register(DOMAIN, SERVICE_SYNC, services.handle_sync_service)
 
     return True
@@ -45,15 +45,19 @@ async def async_setup_entry(hass, entry):
 
 class AlexaServices:
 
-    def __init__(self, alexa, logger):
+    def __init__(self, alexa, logger, hass):
         self.alexa = alexa
         self.logger = logger
+        self.hass = hass
 
     async def handle_sync_service(self, call):
         self.logger.debug("Alexa Sync Service")
 
         try:
-            await self.alexa.sync(self.logger, True)
+            updated = await self.alexa.sync(self.logger, True)
+            if updated == True:
+                _LOGGER.debug("Firing alexa_shopping_list_changed event")
+                self.hass.bus.async_fire("alexa_shopping_list_changed")
         except Exception as e:
             self.logger.error(f"Alexa Shopping List Sync Error: {e}", exc_info=True)
 

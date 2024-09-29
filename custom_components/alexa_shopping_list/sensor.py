@@ -38,7 +38,12 @@ class AlexaShoppingListSyncSensor(SensorEntity):
 
     async def async_update(self) -> None:
         try:
-            await self.alexa.sync(_LOGGER)
+
+            updated = await self.alexa.sync(_LOGGER)
+            if updated == True:
+                _LOGGER.debug("Firing alexa_shopping_list_changed event")
+                self.hass.bus.async_fire("alexa_shopping_list_changed")
+
         except Exception as e:
             _LOGGER.error(f"Alexa Shopping List Sync Error: {e}", exc_info=True)
         self._attr_native_value = self.alexa.last_updated

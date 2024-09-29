@@ -5,6 +5,7 @@ import json
 import datetime
 import os
 import asyncio
+import hashlib
 
 # ============================================================
 
@@ -159,8 +160,15 @@ class AlexaShoppingListSync:
     
 
     def _read_ha_shopping_list(self):
-        with open(self._hasl_path, 'r') as file:
-            return json.load(file)
+        if os.path.exists(self._hasl_path):
+            with open(self._hasl_path, 'r') as file:
+                return json.load(file)
+        return []
+    
+
+    def _ha_shopping_list_hash(self):
+        serialized = json.dumps(self._read_ha_shopping_list(), sort_keys=True)
+        return hashlib.md5(serialized.encode('utf-8')).hexdigest()
     
 
     def _find_ha_list_item(self, find, ha_list):
@@ -178,17 +186,18 @@ class AlexaShoppingListSync:
 
     async def sync(self, logger=None, force=False):
         if os.path.exists(self._hasl_path) == False:
-            return
+            return False
         
         if self._cached_list_needs_updating() == False and force == False:
-            return True
+            return False
         
         if self._is_syncing == True:
-            return True
+            return False
         self._is_syncing = True
 
         loop = asyncio.get_running_loop()
         ha_list = await loop.run_in_executor(None, self._read_ha_shopping_list)
+        original_ha_list_hash = await loop.run_in_executor(None, self._ha_shopping_list_hash)
         
         await self._debug_log_entry(logger, "Loading Alexa shopping list")
         alexa_list = await self._get_list(force)
@@ -220,7 +229,16 @@ class AlexaShoppingListSync:
         await self._hasl_refresh()
 
         self._is_syncing = False
-        return True
+
+        await self._debug_log_entry(logger, "Original list hash: "+original_ha_list_hash)
+        new_ha_list_hash = await loop.run_in_executor(None, self._ha_shopping_list_hash)
+        await self._debug_log_entry(logger, "New list hash: "+new_ha_list_hash)
+        if original_ha_list_hash != new_ha_list_hash:
+            await self._debug_log_entry(logger, "List changed")
+            return True
+        else:
+            await self._debug_log_entry(logger, "List did not change")
+            return False
 
 
     # ============================================================
