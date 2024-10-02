@@ -103,6 +103,17 @@ def _stop_alexa():
 # API
 
 
+async def _cmd_reset():
+    purge_files = ['config.json', 'cookies.json']
+    for filename in purge_files:
+        file_path = os.path.join(_config_path(), filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    
+    _load_config()
+    return True, None
+
+
 async def _cmd_is_authenticated():
     recent = _get_config_value('auth_checked_time', 0)
     time_diff = _time_now() - recent
@@ -218,6 +229,8 @@ async def _route_command(command, arguments={}):
         return await _cmd_config_valid()
     if command == "config_set":
         return await _cmd_config_set(arguments)
+    if command == "reset":
+        return await _cmd_reset()
     
     # Authentication
     if command == "authenticated":
@@ -295,7 +308,6 @@ async def main():
 
     global server
     listen_addr = None
-    # listen_addr = _get_config_value('listen_addr', 'localhost')
     listen_port = int(_get_config_value('listen_port', 4000))
     server = await websockets.serve(_process_command, listen_addr, listen_port)
 

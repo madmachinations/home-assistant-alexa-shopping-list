@@ -171,6 +171,19 @@ class WebSocketClient:
         return False
     
 
+    async def _cmd_reset_server(self):
+        confirm = input("Are you sure you want to reset the server? (y/N): ")
+        if confirm in ["y", "Y"]:
+            response = await self._send_command("reset")
+            if self._command_successful(response):
+                print("Server has been reset, re-running initial setup...")
+                await self._check_server()
+                return
+            print("Reset failed")
+        else:
+            print("Reset cancelled")
+    
+
     async def _cmd_get_shopping_list(self):
         response = await self._send_command("get_list")
         if self._command_successful(response):
@@ -230,6 +243,9 @@ class WebSocketClient:
         if command == "remove":
             if self._validate_argument_count(args, 1):
                 await self._cmd_remove_shopping_list_item(args[0])
+        
+        if command == "reset":
+            await self._cmd_reset_server()
         
         if command == "shutdown":
             await self._cmd_shutdown()
