@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 from selenium import webdriver
+from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -236,16 +238,36 @@ class AlexaShoppingList:
     def get_alexa_list(self, refresh: bool = True):
         self._ensure_driver_is_on_alexa_list(refresh)
         time.sleep(5)
-        
+
         list_container = self.driver.find_element(By.CLASS_NAME, 'virtual-list')
-        list_items = list_container.find_elements(By.CLASS_NAME, 'item-title')
 
         found = []
-        for item in list_items:
-            found.append(item.get_attribute('innerText'))
+        last = None
+        while True:
+            list_items = list_container.find_elements(By.CLASS_NAME, 'item-title')
+            for item in list_items:
+                if item.get_attribute('innerText') not in found:
+                    found.append(item.get_attribute('innerText'))
+            if last == list_items[-1]:
+                # We've reached the end
+                break
+            last = list_items[-1]
+            self.driver.execute_script("arguments[0].scrollIntoView();", last)
+
+        if not refresh:
+            # Now let's scroll back to the top
+            first = None
+            while True:
+                list_items = list_container.find_elements(By.CLASS_NAME, 'item-title')
+                if first == list_items[0]:
+                    # We've reached the top
+                    break
+                first = list_items[0]
+                scroll_origin = ScrollOrigin.from_element(first)
+                ActionChains(self.driver).scroll_from_origin(scroll_origin, 0, -1000).perform()
 
         return found
-    
+
 
     def _get_alexa_list_item_element(self, item: str):
         self._ensure_driver_is_on_alexa_list(False)
