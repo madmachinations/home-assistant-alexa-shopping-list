@@ -253,6 +253,7 @@ class AlexaShoppingList:
                 break
             last = list_items[-1]
             self.driver.execute_script("arguments[0].scrollIntoView();", last)
+            time.sleep(1)
 
         if not refresh:
             # Now let's scroll back to the top
