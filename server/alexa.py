@@ -14,16 +14,16 @@ import os
 WAIT_TIMEOUT=30
 
 class AlexaShoppingList:
-    
+
     def __init__(self, amazon_url: str = "amazon.co.uk", cookies_path: str = ""):
         self.amazon_url = amazon_url
         self.cookies_path = cookies_path
         self._setup_driver()
-    
+
 
     def __del__(self):
         self._clear_driver()
-    
+
     # ============================================================
     # Helpers
 
@@ -66,24 +66,24 @@ class AlexaShoppingList:
             self._selenium_wait_element((By.ID, 'ap_email'))
         else:
             self.is_authenticated = True
-        
-    
+
+
 
     def _clear_driver(self):
         if hasattr(self, "driver"):
             self._save_session()
             self.driver.close()
-    
+
 
     def _selenium_wait_element(self, element: tuple):
         WebDriverWait(self.driver, WAIT_TIMEOUT).until(EC.presence_of_element_located(element))
-    
+
 
     def _selenium_wait_page_ready(self):
         WebDriverWait(self.driver, WAIT_TIMEOUT).until(
             lambda d: d.execute_script('return document.readyState') == 'complete'
         )
-    
+
 
     def _selenium_get(self, url: str, wait_for_element: tuple=None, wait_for_page_load: bool=False):
         self.driver.get(url)
@@ -93,19 +93,19 @@ class AlexaShoppingList:
 
         if wait_for_page_load:
             self._selenium_wait_page_ready()
-    
+
 
     def _cookie_cache_path(self):
         if self.cookies_path != "":
             return os.path.join(self.cookies_path, "cookies.json")
         return os.path.join(self._get_file_location(), "cookies.json")
-    
+
 
     def _save_session(self):
         if self.is_authenticated:
             with open(self._cookie_cache_path(), 'w') as file:
                 json.dump(self.driver.get_cookies(), file)
-    
+
 
     def _load_cookies(self):
         if os.path.exists(self._cookie_cache_path()):
@@ -115,7 +115,7 @@ class AlexaShoppingList:
 
             for cookie in cookies:
                 self.driver.add_cookie(cookie)
-            
+
             self.driver.refresh()
             self._selenium_wait_element((By.ID, 'nav-link-accountList'))
 
@@ -127,7 +127,7 @@ class AlexaShoppingList:
     def _driver_is_on_login_email_page(self):
         if not 'ap/signin' in self.driver.current_url:
             return False
-        
+
         if len(self.driver.find_elements(By.ID, 'ap_email')) == 0:
             return False
 
@@ -149,7 +149,7 @@ class AlexaShoppingList:
     def _driver_is_on_login_password_page(self):
         if not 'ap/signin' in self.driver.current_url:
             return False
-        
+
         if len(self.driver.find_elements(By.ID, 'ap_password')) == 0:
             return False
 
@@ -160,14 +160,14 @@ class AlexaShoppingList:
         self.driver.find_element(By.ID, 'ap_password').send_keys(self.password)
         self.driver.find_element(By.NAME, 'rememberMe').click()
         self._login_submit_button()
-    
+
 
     def login_requires_mfa(self):
         if not 'ap/mfa' in self.driver.current_url:
             return False
         return True
 
-    
+
     def submit_mfa(self, code: str):
         self.driver.find_element(By.ID, 'auth-mfa-otpcode').send_keys(code)
         self.driver.find_element(By.ID, 'auth-mfa-remember-device').click()
@@ -176,16 +176,16 @@ class AlexaShoppingList:
         time.sleep(5)
         if self.login_requires_mfa() == False:
             self._login_successful()
-    
+
 
     def _handle_login(self):
         if self._driver_is_on_login_email_page():
             self._handle_login_email_page()
-        
+
         if self._driver_is_on_login_password_page():
             self._handle_login_password_page()
 
-    
+
     def login(self, email: str, password: str):
         self._selenium_get("https://www."+self.amazon_url, (By.ID, 'nav-link-accountList'))
 
@@ -203,25 +203,25 @@ class AlexaShoppingList:
         time.sleep(5)
         if self.login_requires_mfa() == False:
             self._login_successful()
-    
+
 
     def _login_successful(self):
         self.is_authenticated = True
         self._save_session()
-    
+
 
     def requires_login(self):
         if 'ap/signin' in self.driver.current_url:
             return True
-        
+
         if len(self.driver.find_elements(By.CLASS_NAME, 'nav-action-signin-button')) > 0:
             return True
 
         if self.is_authenticated == False:
             return True
-        
+
         return False
-    
+
     # ============================================================
     # Alexa lists
 
@@ -248,7 +248,7 @@ class AlexaShoppingList:
             for item in list_items:
                 if item.get_attribute('innerText') not in found:
                     found.append(item.get_attribute('innerText'))
-            if last == list_items[-1]:
+            if not list_items or last == list_items[-1]:
                 # We've reached the end
                 break
             last = list_items[-1]
@@ -290,7 +290,7 @@ class AlexaShoppingList:
 
         textfield = self.driver.find_element(By.CLASS_NAME, 'list-header').find_element(By.CLASS_NAME, 'input-box').find_element(By.TAG_NAME, 'input')
         textfield.send_keys(item)
-        
+
         submit = self.driver.find_element(By.CLASS_NAME, 'list-header').find_element(By.CLASS_NAME, 'add-to-list').find_element(By.TAG_NAME, 'button')
         submit.click()
 
@@ -298,7 +298,7 @@ class AlexaShoppingList:
         time.sleep(1)
 
         return self.get_alexa_list(False)
-    
+
 
     def update_alexa_list_item(self, old: str, new: str):
         element = self._get_alexa_list_item_element(old)
@@ -315,13 +315,13 @@ class AlexaShoppingList:
         time.sleep(1)
 
         return self.get_alexa_list(False)
-    
+
 
     def remove_alexa_list_item(self, item: str):
         element = self._get_alexa_list_item_element(item)
         if element == None:
             return
-        
+
         element.find_element(By.CLASS_NAME, 'item-actions-2').find_element(By.TAG_NAME, 'button').click()
         time.sleep(1)
 
