@@ -38,7 +38,9 @@ class WebSocketClient:
                 }
             }
             await websocket.send(json.dumps(request))
+            print(request)
             response = await websocket.recv()
+            print(response)
             return json.loads(response)
     
 
@@ -125,10 +127,10 @@ class WebSocketClient:
         while True:
             print("\nEnter your Amazon login details")
 
-            email = input("Email address: ")
-            password = input("Password: ")
+            mail = input("Email address: ")
+            passwd = input("Password: ")
 
-            response = await self._send_command("login", email=email, password=password)
+            response = await self._send_command("login", email=mail, password=passwd)
             if self._command_successful(response):
                 result = self._command_result(response)
                 if result == 1:
