@@ -22,7 +22,7 @@ class WebSocketClient:
         connect_addr = args.ip
         connect_port = int(args.port)
         amazon_url = args.amazon_url
-
+        
         self.uri = "ws://"+connect_addr+":"+str(connect_port)
 
     # ============================================================
