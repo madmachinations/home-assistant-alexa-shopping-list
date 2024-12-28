@@ -16,10 +16,12 @@ class WebSocketClient:
         parser = argparse.ArgumentParser(description="Alexa shopping list sync client")
         parser.add_argument("ip", nargs='?', default="localhost", help="Sync server IP Address (localhost)")
         parser.add_argument("port", nargs='?', default="4000", help="Sync server port (4000)")
+        parser.add_argument("amazon_url", nargs='?', default="amazon.co.uk", help="Amazon domain eg amazon.de (default is .co.uk)")
         args = parser.parse_args()
 
         connect_addr = args.ip
         connect_port = int(args.port)
+        amazon_url = amazon_url.ip
 
         self.uri = "ws://"+connect_addr+":"+str(connect_port)
 
@@ -101,15 +103,13 @@ class WebSocketClient:
     
 
     async def _setup_server_config(self):
-        amazon_url = input("\nEnter the base url you use to access Amazon (amazon.co.uk): ")
-        amazon_url = amazon_url.replace("https://", "")
-        amazon_url = amazon_url.replace("http://", "")
-        amazon_url = amazon_url.replace("www.", "")
-        amazon_url = amazon_url.split("/")[0]
-        amazon_url = amazon_url.lower()
-
         if amazon_url == "":
-            amazon_url = "amazon.co.uk"
+            amazon_url = input("\nEnter the base url you use to access Amazon (amazon.co.uk): ")
+            amazon_url = amazon_url.replace("https://", "")
+            amazon_url = amazon_url.replace("http://", "")
+            amazon_url = amazon_url.replace("www.", "")
+            amazon_url = amazon_url.split("/")[0]
+            amazon_url = amazon_url.lower()
 
         await self._cmd_config_set("amazon_url", amazon_url, False)
     
