@@ -106,6 +106,12 @@ You can do this with the client script in this repository.
 
 So, if you have not done so already, download this repository first.
 
+You can download each version of the project files on the releases page here:
+
+https://github.com/madmachinations/home-assistant-alexa-shopping-list/releases
+
+You probably want whatever the latest one is.
+
 **THE CLIENT SCRIPT IS RUN ON THE COMPUTER YOU ARE USING RIGHT NOW, NOT ON YOUR HOME ASSISTANT BOX AND NOT WITHIN THE RUNNING CONTAINER. YOU NEED TO DOWNLOAD THE FILES FROM THIS REPOSITORY TO YOUR COMPUTER, AND THE CLIENT SCRIPT IS INSIDE THE CLIENT FOLDER**
 
 Before we begin, you need to make sure your system has both `python3` and `pip3` installed.

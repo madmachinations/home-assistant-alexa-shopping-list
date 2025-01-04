@@ -70,7 +70,7 @@ jobs:
         with:
           tag_name: ${{ env.IMAGE_VERSION }}
           release_name: ${{ env.IMAGE_VERSION }}
-          body: "Automated release for version $IMAGE_VERSION"
+          body: "Automated release for version ${{ env.IMAGE_VERSION }}"
           draft: false
           prerelease: false
   
@@ -96,14 +96,16 @@ jobs:
       - name: Update version in YAML file
         run: |
           cd external-repo
-          sed -i "s/^version:.*/version: '$IMAGE_VERSION'/" ${{ env.FILE_PATH }}
+          sed -i "s/^version:.*/version: '${{ env.IMAGE_VERSION }}'/" ${{ env.FILE_PATH }}
           cd ../
 
       - name: Commit and push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.HASS_REPO_TOKEN }}
         run: |
           cd external-repo
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add ${{ env.FILE_PATH }}
-          git commit -m "Update version to $IMAGE_VERSION"
+          git commit -m "Update version to ${{ env.IMAGE_VERSION }}"
           git push origin main
