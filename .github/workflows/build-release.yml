@@ -8,11 +8,78 @@ on:
 permissions:
   contents: write
 
-jobs:  
+jobs:
+
+
+  docker:
+    name: Build Server Container
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set version
+        run: echo "IMAGE_VERSION=$(date +"%y%m.%j")" >> $GITHUB_ENV
+      - name: Show version number
+        run: echo "Building release for version - $IMAGE_VERSION"
+      
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: ./server/
+          push: true
+          tags: |
+            madmachinations/ha-alexa-shopping-list-sync:${{ env.IMAGE_VERSION }}
+            madmachinations/ha-alexa-shopping-list-sync:latest
+  
+
+  release:
+    name: Release Client Version
+    runs-on: ubuntu-latest
+    needs: docker
+    steps:
+      - name: Set version
+        run: echo "IMAGE_VERSION=$(date +"%y%m.%j")" >> $GITHUB_ENV
+      
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Create a tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ secrets.GITHUB_TOKEN }}
+          git push origin ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create a Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.IMAGE_VERSION }}
+          release_name: ${{ env.IMAGE_VERSION }}
+          body: "Automated release for version ${{ env.IMAGE_VERSION }}"
+          draft: false
+          prerelease: false
+  
 
   hass:
     name: Publish update to HASS Add-on repository
     runs-on: ubuntu-latest
+    needs: release
     env:
       REPO_NAME: madmachinations/home-assistant-alexa-shopping-list-hass
       FILE_PATH: alexa_shopping_list/config.yaml
