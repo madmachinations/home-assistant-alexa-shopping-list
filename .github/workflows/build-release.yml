@@ -38,8 +38,8 @@ jobs:
           context: ./server/
           push: true
           tags: |
-            ha-alexa-shopping-list-sync:${{ env.IMAGE_VERSION }}
-            ha-alexa-shopping-list-sync:latest
+            madmachinations/ha-alexa-shopping-list-sync:${{ env.IMAGE_VERSION }}
+            madmachinations/ha-alexa-shopping-list-sync:latest
   
 
   release:
