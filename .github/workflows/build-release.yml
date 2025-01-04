@@ -71,7 +71,6 @@ jobs:
           body: "Automated release for version $IMAGE_VERSION"
           draft: false
           prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
   
 
   hass:
