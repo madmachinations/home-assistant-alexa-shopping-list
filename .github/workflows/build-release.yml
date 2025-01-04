@@ -107,3 +107,4 @@ jobs:
         with:
           github_token: ${{ secrets.HASS_REPO_TOKEN }}
           branch: main
+          force: true
