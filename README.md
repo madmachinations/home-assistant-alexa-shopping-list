@@ -42,7 +42,7 @@ There is a HASS OS Add-on of the server.
 
 Add this repository to your installation, and install the alexa shopping list add on:
 
-`https://gitlab.com/home-assistant-components/hass-addons`
+`https://github.com/madmachinations/home-assistant-alexa-shopping-list-hass`
 
 ### Build your own container image
 
@@ -105,6 +105,8 @@ Before the server can do anything, it needs to be configured.
 You can do this with the client script in this repository.
 
 So, if you have not done so already, download this repository first.
+
+**THE CLIENT SCRIPT IS RUN ON THE COMPUTER YOU ARE USING RIGHT NOW, NOT ON YOUR HOME ASSISTANT BOX AND NOT WITHIN THE RUNNING CONTAINER. YOU NEED TO DOWNLOAD THE FILES FROM THIS REPOSITORY TO YOUR COMPUTER, AND THE CLIENT SCRIPT IS INSIDE THE CLIENT FOLDER**
 
 Before we begin, you need to make sure your system has both `python3` and `pip3` installed.
 

@@ -58,6 +58,9 @@ class AlexaShoppingList:
         self._load_cookies()
 
         if len(self.driver.find_elements(By.ID, 'nav-backup-backup')) > 0:
+            # I don't know why this is, but random amazon displays some weird page instead of the usual home page.
+            # This solution only works for versions of amazon in english, so would cause problems for other languages.
+            # But this only happens rarely, so... whatever.
             self.driver.find_element(By.CLASS_NAME, "nav-bb-right").find_element(By.LINK_TEXT, "Your Account").click()
             time.sleep(5)
 
@@ -158,7 +161,10 @@ class AlexaShoppingList:
 
     def _handle_login_password_page(self):
         self.driver.find_element(By.ID, 'ap_password').send_keys(self.password)
-        self.driver.find_element(By.NAME, 'rememberMe').click()
+        try:
+            self.driver.find_element(By.NAME, 'rememberMe').click()
+        except:
+            pass
         self._login_submit_button()
 
 
@@ -191,6 +197,7 @@ class AlexaShoppingList:
 
         account_menu = self.driver.find_element(By.ID, 'nav-link-accountList')
         account_menu.click()
+        time.sleep(5)
 
         self.email = email
         self.password = password
@@ -271,6 +278,7 @@ class AlexaShoppingList:
 
 
     def _get_alexa_list_item_element(self, item: str):
+        #TODO: This potentially needs the scrolling solution from above?
         self._ensure_driver_is_on_alexa_list(False)
         time.sleep(5)
         list_container = self.driver.find_element(By.CLASS_NAME, 'virtual-list')

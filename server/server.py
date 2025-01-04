@@ -118,6 +118,7 @@ async def _cmd_is_authenticated():
     recent = _get_config_value('auth_checked_time', 0)
     time_diff = _time_now() - recent
 
+    #TODO: This is potentially causing issues during setup where it thinks it's logged in but isnt
     if time_diff < 86400:
         return True, None
 
