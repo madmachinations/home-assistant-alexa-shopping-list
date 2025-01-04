@@ -91,7 +91,6 @@ jobs:
         with:
           repository: ${{ env.REPO_NAME }}
           persist-credentials: false
-          fetch-depth: 0
         
       - name: Update version in YAML file
         run: |
