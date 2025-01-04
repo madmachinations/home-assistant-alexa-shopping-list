@@ -13,7 +13,6 @@ jobs:
   hass:
     name: Publish update to HASS Add-on repository
     runs-on: ubuntu-latest
-    needs: release
     env:
       REPO_NAME: madmachinations/home-assistant-alexa-shopping-list-hass
       FILE_PATH: alexa_shopping_list/config.yaml
