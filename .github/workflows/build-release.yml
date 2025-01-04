@@ -56,20 +56,12 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Create a tag
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag $IMAGE_VERSION
-          git push origin $IMAGE_VERSION
-
       - name: Create a Release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: $IMAGE_VERSION
-          release_name: $IMAGE_VERSION
+          release_name: ${{ env.IMAGE_VERSION }}
           body: "Automated release for version $IMAGE_VERSION"
           draft: false
           prerelease: false
@@ -106,4 +98,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add ${{ env.FILE_PATH }}
           git commit -m "Update version to $IMAGE_VERSION"
-          git push origin master
+          git push origin main
