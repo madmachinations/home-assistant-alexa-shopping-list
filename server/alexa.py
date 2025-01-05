@@ -31,6 +31,9 @@ class AlexaShoppingList:
     def _get_file_location(self):
         return os.path.dirname(os.path.realpath(__file__))
 
+    def _is_debug_mode(self):
+        return os.environ.get("ALEXA_SHOPPING_LIST_DEBUG", "0") == "1"
+
     # ============================================================
     # Selenium
 
@@ -39,7 +42,8 @@ class AlexaShoppingList:
         user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
 
         chrome_options = Options()
-        chrome_options.add_argument("--headless")
+        if(self._is_debug_mode() == False):
+            chrome_options.add_argument("--headless")
         chrome_options.add_argument("window-size=1366,768")
         chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--no-sandbox")
