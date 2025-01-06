@@ -271,7 +271,7 @@ class AlexaShoppingList:
             first = None
             while True:
                 list_items = list_container.find_elements(By.CLASS_NAME, 'item-title')
-                if first == list_items[0]:
+                if not list_items or first == list_items[0]:
                     # We've reached the top
                     break
                 first = list_items[0]
