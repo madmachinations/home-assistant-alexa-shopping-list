@@ -131,96 +131,6 @@ class AlexaShoppingList:
     # Authentication
 
 
-    def _driver_is_on_login_email_page(self):
-        if not 'ap/signin' in self.driver.current_url:
-            return False
-
-        if len(self.driver.find_elements(By.ID, 'ap_email')) == 0:
-            return False
-
-        return True
-
-
-    def _login_submit_button(self):
-        if len(self.driver.find_elements(By.ID, 'signInSubmit')) > 0:
-            self.driver.find_element(By.ID, 'signInSubmit').click()
-        else:
-            self.driver.find_element(By.ID, 'continue').click()
-
-
-    def _handle_login_email_page(self):
-        self.driver.find_element(By.ID, 'ap_email').send_keys(self.email)
-        self._login_submit_button()
-
-
-    def _driver_is_on_login_password_page(self):
-        if not 'ap/signin' in self.driver.current_url:
-            return False
-
-        if len(self.driver.find_elements(By.ID, 'ap_password')) == 0:
-            return False
-
-        return True
-
-
-    def _handle_login_password_page(self):
-        self.driver.find_element(By.ID, 'ap_password').send_keys(self.password)
-        try:
-            self.driver.find_element(By.NAME, 'rememberMe').click()
-        except:
-            pass
-        self._login_submit_button()
-
-
-    def login_requires_mfa(self):
-        if not 'ap/mfa' in self.driver.current_url:
-            return False
-        return True
-
-
-    def submit_mfa(self, code: str):
-        self.driver.find_element(By.ID, 'auth-mfa-otpcode').send_keys(code)
-        self.driver.find_element(By.ID, 'auth-mfa-remember-device').click()
-        self.driver.find_element(By.ID, 'auth-signin-button').click()
-
-        time.sleep(5)
-        if self.login_requires_mfa() == False:
-            self._login_successful()
-
-
-    def _handle_login(self):
-        if self._driver_is_on_login_email_page():
-            self._handle_login_email_page()
-
-        if self._driver_is_on_login_password_page():
-            self._handle_login_password_page()
-
-
-    def login(self, email: str, password: str):
-        self._selenium_get("https://www."+self.amazon_url, (By.ID, 'nav-link-accountList'))
-
-        account_menu = self.driver.find_element(By.ID, 'nav-link-accountList')
-        account_menu.click()
-        time.sleep(5)
-
-        self.email = email
-        self.password = password
-
-        self._handle_login()
-
-        self.email = ""
-        self.password = ""
-
-        time.sleep(5)
-        if self.login_requires_mfa() == False:
-            self._login_successful()
-
-
-    def _login_successful(self):
-        self.is_authenticated = True
-        self._save_session()
-
-
     def requires_login(self):
         if 'ap/signin' in self.driver.current_url:
             return True
@@ -232,6 +142,10 @@ class AlexaShoppingList:
             return True
 
         return False
+    
+    def save_session(self, session):
+        #TODO
+        pass
 
     # ============================================================
     # Alexa lists

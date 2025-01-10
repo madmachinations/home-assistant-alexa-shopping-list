@@ -71,6 +71,10 @@ async def _cmd_config_set(args):
     _set_config_value(args['key'], args['value'])
     return True, None
 
+
+async def _cmd_config_get(args):
+    return _get_config_value(args['key']), None
+
 # ============================================================
 # Alexa
 
@@ -230,6 +234,8 @@ async def _route_command(command, arguments={}):
         return await _cmd_config_valid()
     if command == "config_set":
         return await _cmd_config_set(arguments)
+    if command == "config_get":
+        return await _cmd_config_get(arguments)
     if command == "reset":
         return await _cmd_reset()
     

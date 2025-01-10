@@ -6,6 +6,7 @@ import json
 import argparse
 import shlex
 import sys
+from authenticator import Authenticator
 
 # ============================================================
 
@@ -82,7 +83,6 @@ class WebSocketClient:
         if await self._server_authenticated() == False:
             print("Server is not authenticated with Amazon, beginning login...")
             await self._setup_server_authentication()
-        print("Server is authenticated")
 
 
     async def _ping_server(self):
@@ -122,34 +122,13 @@ class WebSocketClient:
     
 
     async def _setup_server_authentication(self):
-        while True:
-            print("\nEnter your Amazon login details")
+        amazon_url = self._cmd_config_get("amazon_url", "amazon.co.uk")
+        authenticator = Authenticator(amazon_url)
+        session = authenticator.run()
 
-            email = input("Email address: ")
-            password = input("Password: ")
+        #TODO: Transmit session to server
 
-            response = await self._send_command("login", email=email, password=password)
-            if self._command_successful(response):
-                result = self._command_result(response)
-                if result == 1:
-                    # Logged in successfully
-                    return True
-                if result == 0:
-                    # Requires MFA
-                    break
-                if result == -1:
-                    # Invalid
-                    print("\nInvalid details, please try again.")
-            else:
-                print("\nUNKNOWN ERROR: "+self._command_error(response))
-        
-        while True:
-            mfa = input("\nEnter your OTP/MFA Code: ")
-            response = await self._send_command("mfa", code=mfa)
-            if self._command_successful(response):
-                if self._command_result(response) == True:
-                    return True
-                print("Invalid code, please try again.")
+
 
 
     async def _cmd_shutdown(self):
@@ -169,6 +148,16 @@ class WebSocketClient:
             return self._command_result(response)
         print("FAILED to update config item `"+key+"`")
         return False
+
+
+    async def _cmd_config_get(self, key, default=None):
+        response = await self._send_command("config_get", key=key)
+        if self._command_successful(response):
+            found_value = self._command_result(response)
+            if found_value == None or found_value == "":
+                return default
+        print("FAILED to get config item `"+key+"`")
+        return None
     
 
     async def _cmd_reset_server(self):
