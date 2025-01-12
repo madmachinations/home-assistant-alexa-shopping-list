@@ -122,7 +122,6 @@ async def _cmd_is_authenticated():
     recent = _get_config_value('auth_checked_time', 0)
     time_diff = _time_now() - recent
 
-    #TODO: This is potentially causing issues during setup where it thinks it's logged in but isnt
     if time_diff < 86400:
         return True, None
 
@@ -142,46 +141,11 @@ async def _cmd_is_authenticated():
 
 async def _cmd_login(args):
     print("\nAttempting login...")
-    instance = _start_alexa()
 
-    if instance.requires_login() == False:
-        print("ERROR: Already logged in")
-        _stop_alexa()
-        return None, "Already logged in"
+    with open(os.path.join(_config_path(), 'cookies.json'), 'w') as file:
+        json.dump(args['session'], file)
 
-    instance.login(args['email'], args['password'])
-    if instance.is_authenticated == True:
-        print("Logged in successfully")
-        _stop_alexa()
-        return 1, None
-
-    if instance.login_requires_mfa():
-        print("Requires MFA")
-        return 0, None
-    
-    print("Invalid credentials")
-    return -1, "Authentication invalid"
-
-
-async def _cmd_mfa(args):
-    print("Submitting MFA")
-    if alexa_running == False:
-        print("ERROR: Invalid session")
-        return None, "Invalid session"
-    instance = _start_alexa()
-    
-    # if instance.login_requires_mfa():
-    #     print("ERROR: MFA not required")
-    #     return None, "MFA not required"
-    
-    instance.submit_mfa(args['code'])
-    if instance.is_authenticated == True:
-        print("Code accepted")
-        _stop_alexa()
-        return True, None
-    
-    print("Code failed")
-    return False, None
+    return await _cmd_is_authenticated()
 
 
 async def _cmd_get_shopping_list():

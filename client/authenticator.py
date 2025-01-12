@@ -5,11 +5,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import json
 import platform
 import requests
 import zipfile
-import tarfile
 import os
 import tempfile
 import stat
@@ -62,7 +60,7 @@ class Authenticator:
     # Selenium
 
 
-    def _setup_driver(self):
+    def _open_browser(self):
         user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
 
         chrome_options = Options()
@@ -197,8 +195,6 @@ class Authenticator:
         if platform.system() == "Darwin":
             subprocess.run(["xattr", "-r", "-d", "com.apple.quarantine", chrome_path], check=False)
             subprocess.run(["chmod", "+x", self._get_chromium_sub_path("chrome_binary_path")], check=True)
-            # subprocess.run(["chmod", "+x", os.path.join(self._get_chromium_sub_path("chrome_binary_path"), "Frameworks/Chromium Framework.framework/Versions/134.0.6952.0/Helpers/chrome_crashpad_handler")], check=True)
-            # subprocess.run(["chmod", "+x", self._get_chromium_sub_path("chromedriver_binary_path")], check=True)
 
         print(f"Downloading Chrome Driver...")
         response = requests.get(driver_url, stream=True)
@@ -234,22 +230,41 @@ class Authenticator:
             print("Chromium not found. Downloading...")
             self._reset_chromium()
             self._download_chromium()
-        
         print("Chromium is ready")
 
 
     # ============================================================
     # Perform authentication
 
+    def _confirm(self, message):
+        while True:
+            input_value = input(message+" (y/N): ")
+            if input_value.lower() in ["y", "yes"]:
+                return True
+            elif input_value.lower() in ["n", "no", ""]:
+                return False
+
 
     def run(self):
+        print("\nTo authenticate with amazon we need to download a copy of Chromium to your computer")
+        print("You will use this web browser to login to your amazon account")
+        print("The resulting session will then be transferred to the sync-server on your HA box")
+        
+        if self._confirm("\nDo you want to continue?") == False:
+            return None
         self._ensure_chromium()
 
-        self._setup_driver()
-        input("Press enter to continue")
+        print("\nWe will now open the browser for you to login to Amazon")
+        print("Just login as you normally would, but DO NOT CLOSE THE BROWSER!")
+        print("After you have logged into your account, come back to this window and confirm you are logged in")
+        print("The browser will be closed for you automatically. It needs to remain open to transfer the session")
 
-        # self._setup_driver()
-        # session = self._get_session_data()
-        #TODO: Return session json
+        if self._confirm("\nDo you want to continue?") == False:
+            return None
+
+        self._open_browser()
+        if self._confirm("\nAre you logged in to your Amazon account?") == True:
+            return self._get_session_data()
+        return None
 
     # ============================================================

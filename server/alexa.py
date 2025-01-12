@@ -70,7 +70,7 @@ class AlexaShoppingList:
 
         if len(self.driver.find_elements(By.CLASS_NAME, 'nav-action-signin-button')) > 0:
             self.driver.find_element(By.ID, 'nav-link-accountList').click()
-            self._selenium_wait_element((By.ID, 'ap_email'))
+            time.sleep(5)
         else:
             self.is_authenticated = True
 
@@ -78,7 +78,7 @@ class AlexaShoppingList:
 
     def _clear_driver(self):
         if hasattr(self, "driver"):
-            self._save_session()
+            self.save_session()
             self.driver.close()
 
 
@@ -106,12 +106,6 @@ class AlexaShoppingList:
         if self.cookies_path != "":
             return os.path.join(self.cookies_path, "cookies.json")
         return os.path.join(self._get_file_location(), "cookies.json")
-
-
-    def _save_session(self):
-        if self.is_authenticated:
-            with open(self._cookie_cache_path(), 'w') as file:
-                json.dump(self.driver.get_cookies(), file)
 
 
     def _load_cookies(self):
@@ -143,9 +137,11 @@ class AlexaShoppingList:
 
         return False
     
-    def save_session(self, session):
-        #TODO
-        pass
+
+    def save_session(self):
+        if self.is_authenticated:
+            with open(self._cookie_cache_path(), 'w') as file:
+                json.dump(self.driver.get_cookies(), file)
 
     # ============================================================
     # Alexa lists

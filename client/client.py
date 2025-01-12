@@ -122,12 +122,12 @@ class WebSocketClient:
     
 
     async def _setup_server_authentication(self):
-        # amazon_url = self._cmd_config_get("amazon_url", "amazon.co.uk")
-        amazon_url = "amazon.co.uk" #TODO: Remove this
+        amazon_url = await self._cmd_config_get("amazon_url", "amazon.co.uk")
+
         authenticator = Authenticator(amazon_url)
         session = authenticator.run()
 
-        #TODO: Transmit session to server
+        await self._cmd_send_auth_session(session)
 
 
     async def _cmd_shutdown(self):
@@ -155,6 +155,7 @@ class WebSocketClient:
             found_value = self._command_result(response)
             if found_value == None or found_value == "":
                 return default
+            return found_value
         print("FAILED to get config item `"+key+"`")
         return None
     
@@ -170,6 +171,13 @@ class WebSocketClient:
             print("Reset failed")
         else:
             print("Reset cancelled")
+    
+
+    async def _cmd_send_auth_session(self, session):
+        response = await self._send_command("login", session=session)
+        if self._command_successful(response):
+            return
+        print("ERROR: "+self._command_error(response))
     
 
     async def _cmd_get_shopping_list(self):
@@ -247,30 +255,29 @@ class WebSocketClient:
 
     async def run_console(self):
         print("Alexa Shopping List Sync Client Console.\n")
-        await self._setup_server_authentication()
-        # await self._check_server()
+        await self._check_server()
 
-        # print("\nType 'help' for commands.\n")
-        # while True:
-        #     cmd_input = input("> ").strip().lower()
-        #     parts = shlex.split(cmd_input)
+        print("\nType 'help' for commands.\n")
+        while True:
+            cmd_input = input("> ").strip().lower()
+            parts = shlex.split(cmd_input)
 
-        #     command = parts[0]
-        #     arguments = parts[1:]
+            command = parts[0]
+            arguments = parts[1:]
 
-        #     if command == "quit" or command == "exit":
-        #         break
+            if command == "quit" or command == "exit":
+                break
             
-        #     keep_running = True
-        #     # try:
-        #     keep_running = await self._handle_commands(command, arguments)
-        #     # except:
-        #     #     print("Unknown error occurred")
+            keep_running = True
+            # try:
+            keep_running = await self._handle_commands(command, arguments)
+            # except:
+            #     print("Unknown error occurred")
             
-        #     if keep_running == False:
-        #         break
+            if keep_running == False:
+                break
         
-        # print("\nGoodbye...")
+        print("\nGoodbye...")
 
 # ============================================================
 
