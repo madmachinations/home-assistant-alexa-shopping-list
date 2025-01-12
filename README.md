@@ -1,7 +1,5 @@
 # Alexa Shopping List to Home Assistant Synchroniser
 
-<a href="https://buymeacoffee.com/madmachinations" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
-
 This is a custom component for Home Assistant, which allows you to synchronise your Alexa Shopping List with the Home Assistant shopping list.
 
 **This works even though they cut off third party access to the shopping lists in Summer 2024**
@@ -53,7 +51,3 @@ I would appreciate any help from anyone for testing and further development on v
 If you are not technical, there are other ways to help. Such as identifying duplicate issues, or helping other people in the community support discussion board here:
 
 https://github.com/madmachinations/home-assistant-alexa-shopping-list/discussions/categories/community-support
-
-If you like this thing and you have the means, then please consider buying me a coffee. Which if I'm honest I will definitely spend on beer and pizza. But sure let's call that "coffee".
-
-<a href="https://buymeacoffee.com/madmachinations" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
