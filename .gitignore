@@ -7,3 +7,4 @@ __pycache__
 old/
 server/cache
 .DS_Store
+client/chromium/
