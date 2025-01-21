@@ -12,6 +12,7 @@ import os
 import tempfile
 import stat
 import subprocess
+import shutil
 
 WAIT_TIMEOUT=30
 CHROMIUM_REPO_BASE_URL = "https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/"
@@ -169,7 +170,7 @@ class Authenticator:
                 zip_ref.extractall(temp_dir)
         
         extracted_dir = next(os.path.join(temp_dir, d) for d in os.listdir(temp_dir) if os.path.isdir(os.path.join(temp_dir, d)))
-        os.rename(extracted_dir, os.path.join(base_path, extract_as))
+        shutil.move(extracted_dir, os.path.join(base_path, extract_as))
         os.rmdir(temp_dir)
         os.remove(file_name)
     
