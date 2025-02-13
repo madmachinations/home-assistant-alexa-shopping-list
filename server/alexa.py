@@ -7,6 +7,7 @@ from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import StaleElementReferenceException
 import time
 import json
 import os
@@ -192,14 +193,26 @@ class AlexaShoppingList:
 
 
     def _get_alexa_list_item_element(self, item: str):
-        #TODO: This potentially needs the scrolling solution from above?
         self._ensure_driver_is_on_alexa_list(False)
         time.sleep(5)
         list_container = self.driver.find_element(By.CLASS_NAME, 'virtual-list')
 
-        for container in list_container.find_elements(By.CLASS_NAME, 'inner'):
-            if container.find_element(By.CLASS_NAME, 'item-title').get_attribute('innerText') == item:
-                return container
+        last = None
+        while True:
+            list_items = list_container.find_elements(By.CLASS_NAME, 'inner')
+            for container in list_items:
+                title_element = container.find_element(By.CLASS_NAME, 'item-title')
+                if title_element.get_attribute('innerText') == item:
+                    return container  # Return immediately when found
+
+            if not list_items or last == list_items[-1]:
+                # We've reached the top
+                break
+
+            last = list_items[-1]
+            self.driver.execute_script("arguments[0].scrollIntoView();", last)
+            time.sleep(1)
+
         return None
 
 
@@ -240,13 +253,27 @@ class AlexaShoppingList:
 
 
     def remove_alexa_list_item(self, item: str):
-        element = self._get_alexa_list_item_element(item)
-        if element == None:
-            return
-
-        element.find_element(By.CLASS_NAME, 'item-actions-2').find_element(By.TAG_NAME, 'button').click()
-        time.sleep(1)
-
+        # In large lists, items towards the end are sometimes not found on the first try
+        # In cases like these, retry if the element is not found
+        retries = 3
+        while retries > 0:
+            element = self._get_alexa_list_item_element(item)
+            
+            if element is None:
+                return None
+            
+            try:
+                # Find the delete button and click it
+                delete_button = element.find_element(By.CLASS_NAME, 'item-actions-2').find_element(By.TAG_NAME, 'button')
+                delete_button.click()
+                break
+            except StaleElementReferenceException:
+                retries -= 1
+                time.sleep(1)
+            except Exception as e:
+                return None
+        
+        time.sleep(1)  # Wait for the list to update
         return self.get_alexa_list(False)
 
     # ============================================================
