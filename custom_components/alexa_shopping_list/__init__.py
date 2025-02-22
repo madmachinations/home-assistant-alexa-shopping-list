@@ -35,7 +35,7 @@ async def async_setup_entry(hass, entry):
     
     # hass.bus.async_listen("shopping_list_updated", alexa.homeassistant_shopping_list_updated)
     hass.data[DOMAIN][entry.entry_id] = alexa
-    await hass.config_entries.async_forward_entry_setup(entry, "sensor")
+    await hass.config_entries.async_forward_entry_setups(entry, ["sensor"])
 
     services = AlexaServices(alexa, _LOGGER, hass)
     hass.services.async_register(DOMAIN, SERVICE_SYNC, services.handle_sync_service)

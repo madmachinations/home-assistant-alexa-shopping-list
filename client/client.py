@@ -138,6 +138,28 @@ class WebSocketClient:
     # ============================================================
     # Commands
 
+    async def _get_help(self):
+        help_message = """
+        Usage: [COMMAND] [ARGS]...
+
+        Commands:
+        authenticate           Authenticate with your Alexa account
+        help                   Show this help message
+        reset                  Reset the server to initial setup
+        shutdown               Send shutdown signal to server
+        quit, exit             Close the client
+        list                   List all items on your Alexa list
+        add ITEM               Add an item to your Alexa list
+        update OLD NEW         Update an item on your Alexa list
+        remove ITEM            Remove an item from your Alexa list
+        config_set KEY VALUE   Set a configuration key (e.g., "amazon_url")
+
+        Examples:
+        add cake
+        update cake "baked beans"
+        remove "baked beans"
+        """
+        print(help_message.strip())
 
     async def _cmd_config_set(self, key, value=None, announce=True):
         response = await self._send_command("config_set", key=key, value=value)
@@ -243,6 +265,9 @@ class WebSocketClient:
         if command == "authenticate":
             await self._setup_server_authentication()
         
+        if command == "help":
+            await self._get_help()
+
         if command == "reset":
             await self._cmd_reset_server()
         
