@@ -230,33 +230,32 @@ async def _route_command(command, arguments={}):
 
 async def _process_command(websocket, path):
     clients.add(websocket)
-    # try:
-    async for message in websocket:
-        # try:
+    try:
+        async for message in websocket:
+            try:
+                data = json.loads(message)
+                command = data.get('command')
+                arguments = data.get('args')
 
-        data = json.loads(message)
-        command = data.get('command')
-        arguments = data.get('args')
+                response = {"result": None, "error": None}
+                results = await _route_command(command, arguments)
 
-        response = {"result": None, "error": None}
-        results = await _route_command(command, arguments)
+                if len(results) == 2:
+                    response = {
+                        "result": results[0],
+                        "error": results[1]
+                    }
+                else:
+                    response['error'] = 'Unknown command'
 
-        if len(results) == 2:
-            response = {
-                "result": results[0],
-                "error": results[1]
-            }
-        else:
-            response['error'] = 'Unknown command'
+            except json.JSONDecodeError:
+                response = {'error': 'Invalid JSON'}
+            except Exception as e:
+                response = {'error': f'Fatal exception: {str(e)}'}
 
-        # except json.JSONDecodeError:
-        #     response = {'error': 'Invalid JSON'}
-        # except:
-        #     response = {'error': 'Fatal exception'}
-
-        await websocket.send(json.dumps(response))
-    # finally:
-    clients.remove(websocket)
+            await websocket.send(json.dumps(response))
+    finally:
+        clients.remove(websocket)
 
 # ============================================================
 # Start/Stop

@@ -219,7 +219,8 @@ class AlexaShoppingList:
     def add_alexa_list_item(self, item: str):
         element = self._get_alexa_list_item_element(item)
         if element != None:
-            return
+            # Item already exists, return current list
+            return self.get_alexa_list(False)
 
         self.driver.find_element(By.CLASS_NAME, 'list-header').find_element(By.CLASS_NAME, 'add-symbol').click()
 
@@ -238,7 +239,8 @@ class AlexaShoppingList:
     def update_alexa_list_item(self, old: str, new: str):
         element = self._get_alexa_list_item_element(old)
         if element == None:
-            return
+            # Item not found, return current list
+            return self.get_alexa_list(False)
 
         element.find_element(By.CLASS_NAME, 'item-actions-1').find_element(By.TAG_NAME, 'button').click()
 
@@ -260,7 +262,8 @@ class AlexaShoppingList:
             element = self._get_alexa_list_item_element(item)
             
             if element is None:
-                return None
+                # Item not found, return current list
+                return self.get_alexa_list(False)
             
             try:
                 # Find the delete button and click it
@@ -271,7 +274,8 @@ class AlexaShoppingList:
                 retries -= 1
                 time.sleep(1)
             except Exception as e:
-                return None
+                # If we hit an unexpected exception, return current list
+                return self.get_alexa_list(False)
         
         time.sleep(1)  # Wait for the list to update
         return self.get_alexa_list(False)
