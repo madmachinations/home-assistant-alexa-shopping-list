@@ -16,6 +16,14 @@
                 "title": "Sync-Server Connection"
             },
 
+            "provider": {
+                "data": {
+                    "provider": "Shopping List Provider"
+                },
+                "description": "Select which shopping list integration to synchronize with Alexa",
+                "title": "Shopping List Provider"
+            },
+
             "sync_mins": {
                 "data": {
                     "sync_mins": "Number of minutes between synchronisation"

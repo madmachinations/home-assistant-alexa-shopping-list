@@ -3,19 +3,16 @@
 import websockets
 import json
 import datetime
-import os
 import asyncio
-import hashlib
 
 # ============================================================
 
 
 class AlexaShoppingListSync:
 
-    def __init__(self, ip="localhost", port=4000, sync_mins=60, hasl_path=None, hasl_refresh=None):
+    def __init__(self, ip="localhost", port=4000, sync_mins=60, provider=None):
         self.uri = "ws://"+ip+":"+str(port)
-        self._hasl_path = hasl_path
-        self._hasl_refresh = hasl_refresh
+        self._provider = provider
         self._setup_cached_list(sync_mins * 60)
         self._is_syncing = False
 
@@ -146,31 +143,6 @@ class AlexaShoppingListSync:
         await self.sync(None, True)
     
 
-    def _export_ha_shopping_list(self, items):
-        export = []
-        for item in items:
-            export.append({
-                "id": item.replace(" ", "_"),
-                "name": item,
-                "complete": False
-            })
-        
-        with open(self._hasl_path, "w") as outfile:
-            outfile.write(json.dumps(export, indent=4))
-    
-
-    def _read_ha_shopping_list(self):
-        if os.path.exists(self._hasl_path):
-            with open(self._hasl_path, 'r') as file:
-                return json.load(file)
-        return []
-    
-
-    def _ha_shopping_list_hash(self):
-        serialized = json.dumps(self._read_ha_shopping_list(), sort_keys=True)
-        return hashlib.md5(serialized.encode('utf-8')).hexdigest()
-    
-
     def _find_ha_list_item(self, find, ha_list):
         for item in ha_list:
             if item['name'] == find:
@@ -185,7 +157,7 @@ class AlexaShoppingListSync:
 
 
     async def sync(self, logger=None, force=False):
-        if os.path.exists(self._hasl_path) == False:
+        if self._provider is None:
             return False
         
         if self._cached_list_needs_updating() == False and force == False:
@@ -195,9 +167,8 @@ class AlexaShoppingListSync:
             return False
         self._is_syncing = True
 
-        loop = asyncio.get_running_loop()
-        ha_list = await loop.run_in_executor(None, self._read_ha_shopping_list)
-        original_ha_list_hash = await loop.run_in_executor(None, self._ha_shopping_list_hash)
+        ha_list = await self._provider.read_list()
+        original_ha_list_hash = await self._provider.get_list_hash()
         
         await self._debug_log_entry(logger, "Loading Alexa shopping list")
         alexa_list = await self._get_list(force)
@@ -224,14 +195,14 @@ class AlexaShoppingListSync:
         
         refreshed_items = await self._get_list()
         await self._debug_log_entry(logger, "Refreshed Alexa list: "+json.dumps(refreshed_items))
-        await self._debug_log_entry(logger, "Exporting new HA shopping list")
-        await loop.run_in_executor(None, self._export_ha_shopping_list, refreshed_items)
-        await self._hasl_refresh()
+        await self._debug_log_entry(logger, "Exporting new shopping list")
+        await self._provider.export_list(refreshed_items)
+        await self._provider.refresh()
 
         self._is_syncing = False
 
         await self._debug_log_entry(logger, "Original list hash: "+original_ha_list_hash)
-        new_ha_list_hash = await loop.run_in_executor(None, self._ha_shopping_list_hash)
+        new_ha_list_hash = await self._provider.get_list_hash()
         await self._debug_log_entry(logger, "New list hash: "+new_ha_list_hash)
         if original_ha_list_hash != new_ha_list_hash:
             await self._debug_log_entry(logger, "List changed")

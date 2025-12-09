@@ -13,7 +13,7 @@ import homeassistant.helpers.config_validation as cv
 
 from .asl import AlexaShoppingListSync
 
-from . import DOMAIN, CONF_IP, CONF_PORT, CONF_SYNC_MINS
+from . import DOMAIN, CONF_IP, CONF_PORT, CONF_SYNC_MINS, CONF_PROVIDER, PROVIDER_HA, PROVIDER_BRING
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,6 +37,7 @@ class AlexaShoppingListConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             CONF_IP: self.config_data[CONF_IP],
             CONF_PORT: self.config_data[CONF_PORT],
             CONF_SYNC_MINS: self.config_data[CONF_SYNC_MINS],
+            CONF_PROVIDER: self.config_data.get(CONF_PROVIDER, PROVIDER_HA),
         })
     
 
@@ -55,7 +56,7 @@ class AlexaShoppingListConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if await alexa.can_ping_server() == True:
                 if await alexa.server_config_is_valid() == True:
                     if await alexa.server_is_authenticated() == True:
-                        return await self.async_step_sync_mins()
+                        return await self.async_step_provider()
                     else:
                         errors["base"] = "server_not_authenticated"
                 else:
@@ -66,6 +67,23 @@ class AlexaShoppingListConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(step_id="server", data_schema=vol.Schema({
             vol.Required(CONF_IP, default="localhost"): cv.string,
             vol.Required(CONF_PORT, default="4000"): cv.string,
+        }), errors=errors)
+
+
+    async def async_step_provider(self, user_input=None):
+        """Select shopping list provider."""
+        errors = {}
+
+        if user_input is not None:
+            provider = user_input.get(CONF_PROVIDER, PROVIDER_HA)
+            self.config_data[CONF_PROVIDER] = provider
+            return await self.async_step_sync_mins()
+
+        return self.async_show_form(step_id="provider", data_schema=vol.Schema({
+            vol.Required(CONF_PROVIDER, default=PROVIDER_HA): vol.In({
+                PROVIDER_HA: "Home Assistant Shopping List",
+                PROVIDER_BRING: "Bring! Shopping List"
+            }),
         }), errors=errors)
 
 
