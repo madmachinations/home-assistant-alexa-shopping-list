@@ -4,8 +4,11 @@
 
 import json
 import os
+import logging
 from typing import List
 from .base import ShoppingListProvider
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class HAShoppingListProvider(ShoppingListProvider):
@@ -30,8 +33,12 @@ class HAShoppingListProvider(ShoppingListProvider):
             List of items with format: [{"name": str, "complete": bool, "id": str}, ...]
         """
         if os.path.exists(self._hasl_path):
-            with open(self._hasl_path, 'r') as file:
-                return json.load(file)
+            try:
+                with open(self._hasl_path, 'r') as file:
+                    return json.load(file)
+            except (json.JSONDecodeError, IOError) as e:
+                _LOGGER.error(f"Error reading HA shopping list from {self._hasl_path}: {e}")
+                return []
         return []
 
     async def export_list(self, items: List[str]) -> None:
@@ -48,8 +55,11 @@ class HAShoppingListProvider(ShoppingListProvider):
                 "complete": False
             })
         
-        with open(self._hasl_path, "w") as outfile:
-            outfile.write(json.dumps(export, indent=4))
+        try:
+            with open(self._hasl_path, "w") as outfile:
+                outfile.write(json.dumps(export, indent=4))
+        except IOError as e:
+            _LOGGER.error(f"Error writing HA shopping list to {self._hasl_path}: {e}")
 
     async def refresh(self) -> None:
         """Refresh the HA shopping list."""

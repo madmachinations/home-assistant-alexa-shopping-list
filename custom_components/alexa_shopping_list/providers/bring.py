@@ -12,15 +12,53 @@ _LOGGER = logging.getLogger(__name__)
 class BringShoppingListProvider(ShoppingListProvider):
     """Provider for Bring shopping list integration."""
 
-    def __init__(self, hass, bring_list: str = ""):
+    def __init__(self, hass, bring_list: str = None):
         """Initialize the Bring shopping list provider.
         
         Args:
             hass: Home Assistant instance
-            bring_list: Name/entity ID of the Bring list to sync with
+            bring_list: Name of the Bring list to sync with (without the sensor. prefix)
+                        If None, will attempt to find the first available Bring sensor
         """
         super().__init__(hass)
-        self._bring_list = bring_list or "bring"
+        self._bring_list = bring_list
+
+    def _get_entity_id(self) -> str:
+        """Get the Bring sensor entity ID.
+        
+        Returns:
+            Entity ID for the Bring sensor, or None if not configured
+        """
+        if self._bring_list:
+            # Allow full entity_id or just the name
+            if self._bring_list.startswith("sensor."):
+                return self._bring_list
+            return f"sensor.{self._bring_list}"
+        
+        # Try to find the first Bring sensor
+        for entity_id in self.hass.states.async_entity_ids("sensor"):
+            if entity_id.startswith("sensor.bring"):
+                _LOGGER.info(f"Auto-detected Bring entity: {entity_id}")
+                return entity_id
+        
+        return None
+
+    def _build_service_data(self, item: str) -> dict:
+        """Build service data for Bring service calls.
+        
+        Args:
+            item: Item name
+            
+        Returns:
+            Service data dictionary
+        """
+        service_data = {"item": item}
+        
+        # Add list parameter if a specific list is configured
+        if self._bring_list and not self._bring_list.startswith("sensor."):
+            service_data["list"] = self._bring_list
+        
+        return service_data
 
     async def read_list(self) -> List[dict]:
         """Read the current Bring shopping list.
@@ -31,7 +69,11 @@ class BringShoppingListProvider(ShoppingListProvider):
         items = []
         
         # Get the Bring sensor entity
-        entity_id = f"sensor.{self._bring_list}"
+        entity_id = self._get_entity_id()
+        if entity_id is None:
+            _LOGGER.error("No Bring entity configured or found")
+            return items
+            
         state = self.hass.states.get(entity_id)
         
         if state is None:
@@ -90,13 +132,7 @@ class BringShoppingListProvider(ShoppingListProvider):
         Args:
             item: Item name to add
         """
-        service_data = {
-            "item": item,
-        }
-        
-        # If a specific list is configured, add it to the service data
-        if self._bring_list and self._bring_list != "bring":
-            service_data["list"] = self._bring_list
+        service_data = self._build_service_data(item)
         
         try:
             await self.hass.services.async_call(
@@ -115,13 +151,7 @@ class BringShoppingListProvider(ShoppingListProvider):
         Args:
             item: Item name to remove
         """
-        service_data = {
-            "item": item,
-        }
-        
-        # If a specific list is configured, add it to the service data
-        if self._bring_list and self._bring_list != "bring":
-            service_data["list"] = self._bring_list
+        service_data = self._build_service_data(item)
         
         try:
             await self.hass.services.async_call(
