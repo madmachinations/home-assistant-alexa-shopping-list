@@ -41,11 +41,11 @@ class ShoppingListProvider(ABC):
         """Get hash of current shopping list for change detection.
         
         Returns:
-            MD5 hash of the serialized shopping list
+            SHA-256 hash of the serialized shopping list
         """
         current_list = await self.read_list()
         serialized = json.dumps(current_list, sort_keys=True)
-        return hashlib.md5(serialized.encode('utf-8')).hexdigest()
+        return hashlib.sha256(serialized.encode('utf-8')).hexdigest()
 
     @abstractmethod
     async def refresh(self) -> None:

@@ -4,6 +4,7 @@
 
 from typing import List
 import logging
+from homeassistant.exceptions import HomeAssistantError
 from .base import ShoppingListProvider
 
 _LOGGER = logging.getLogger(__name__)
@@ -23,6 +24,17 @@ class BringShoppingListProvider(ShoppingListProvider):
         super().__init__(hass)
         self._bring_list = bring_list
 
+    def _is_entity_id(self, value: str) -> bool:
+        """Check if value is a full entity ID.
+        
+        Args:
+            value: String to check
+            
+        Returns:
+            True if value starts with 'sensor.'
+        """
+        return value and value.startswith("sensor.")
+
     def _get_entity_id(self) -> str:
         """Get the Bring sensor entity ID.
         
@@ -31,7 +43,7 @@ class BringShoppingListProvider(ShoppingListProvider):
         """
         if self._bring_list:
             # Allow full entity_id or just the name
-            if self._bring_list.startswith("sensor."):
+            if self._is_entity_id(self._bring_list):
                 return self._bring_list
             return f"sensor.{self._bring_list}"
         
@@ -54,8 +66,8 @@ class BringShoppingListProvider(ShoppingListProvider):
         """
         service_data = {"item": item}
         
-        # Add list parameter if a specific list is configured
-        if self._bring_list and not self._bring_list.startswith("sensor."):
+        # Add list parameter if a specific list is configured (not an entity ID)
+        if self._bring_list and not self._is_entity_id(self._bring_list):
             service_data["list"] = self._bring_list
         
         return service_data
@@ -142,8 +154,10 @@ class BringShoppingListProvider(ShoppingListProvider):
                 blocking=True
             )
             _LOGGER.debug(f"Added item '{item}' to Bring list")
-        except Exception as e:
+        except HomeAssistantError as e:
             _LOGGER.error(f"Failed to add item '{item}' to Bring: {e}")
+        except Exception as e:
+            _LOGGER.error(f"Unexpected error adding item '{item}' to Bring: {e}")
 
     async def _remove_from_bring(self, item: str) -> None:
         """Remove an item from the Bring list.
@@ -161,8 +175,10 @@ class BringShoppingListProvider(ShoppingListProvider):
                 blocking=True
             )
             _LOGGER.debug(f"Removed item '{item}' from Bring list")
-        except Exception as e:
+        except HomeAssistantError as e:
             _LOGGER.error(f"Failed to remove item '{item}' from Bring: {e}")
+        except Exception as e:
+            _LOGGER.error(f"Unexpected error removing item '{item}' from Bring: {e}")
 
     async def refresh(self) -> None:
         """Refresh the Bring shopping list.
