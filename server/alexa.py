@@ -80,7 +80,7 @@ class AlexaShoppingList:
     def _clear_driver(self):
         if hasattr(self, "driver"):
             self.save_session()
-            self.driver.close()
+            self.driver.quit()
 
 
     def _selenium_wait_element(self, element: tuple):
@@ -163,31 +163,37 @@ class AlexaShoppingList:
 
         list_container = self.driver.find_element(By.CLASS_NAME, 'virtual-list')
 
+        # Need to ensure we start at the top of the list
+        first = None
+        while True:
+            list_items = list_container.find_elements(By.CLASS_NAME, 'item-title')
+            if not list_items:
+                # No items found
+                break
+            if first == list_items[0].get_attribute('innerText'):
+                # We've reached the top
+                break
+            first = list_items[0].get_attribute('innerText')
+            scroll_origin = ScrollOrigin.from_element(list_items[0])
+            ActionChains(self.driver).scroll_from_origin(scroll_origin, 0, -1000).perform()
+            time.sleep(1)
+
         found = []
         last = None
         while True:
             list_items = list_container.find_elements(By.CLASS_NAME, 'item-title')
+            if not list_items:
+                # No items found
+                break
+            if last == list_items[-1].get_attribute('innerText'):
+                # We've reached the end
+                break
             for item in list_items:
                 if item.get_attribute('innerText') not in found:
                     found.append(item.get_attribute('innerText'))
-            if not list_items or last == list_items[-1]:
-                # We've reached the end
-                break
-            last = list_items[-1]
-            self.driver.execute_script("arguments[0].scrollIntoView();", last)
+            last = list_items[-1].get_attribute('innerText')
+            self.driver.execute_script("arguments[0].scrollIntoView();", list_items[-1])
             time.sleep(1)
-
-        if not refresh:
-            # Now let's scroll back to the top
-            first = None
-            while True:
-                list_items = list_container.find_elements(By.CLASS_NAME, 'item-title')
-                if not list_items or first == list_items[0]:
-                    # We've reached the top
-                    break
-                first = list_items[0]
-                scroll_origin = ScrollOrigin.from_element(first)
-                ActionChains(self.driver).scroll_from_origin(scroll_origin, 0, -1000).perform()
 
         return found
 
@@ -198,19 +204,23 @@ class AlexaShoppingList:
         list_container = self.driver.find_element(By.CLASS_NAME, 'virtual-list')
 
         last = None
+        current_item = None
         while True:
             list_items = list_container.find_elements(By.CLASS_NAME, 'inner')
+            if not list_items:
+                break
             for container in list_items:
                 title_element = container.find_element(By.CLASS_NAME, 'item-title')
-                if title_element.get_attribute('innerText') == item:
+                current_item = title_element.get_attribute('innerText')
+                if current_item.lower() == item.lower():
                     return container  # Return immediately when found
 
-            if not list_items or last == list_items[-1]:
-                # We've reached the top
+            if last == current_item:
+                # We've reached the bottom
                 break
 
-            last = list_items[-1]
-            self.driver.execute_script("arguments[0].scrollIntoView();", last)
+            last = current_item
+            self.driver.execute_script("arguments[0].scrollIntoView();", list_items[-1])
             time.sleep(1)
 
         return None
