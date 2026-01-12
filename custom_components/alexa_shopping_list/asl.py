@@ -185,6 +185,7 @@ class AlexaShoppingListSync:
 
 
     async def _do_sync(self, logger=None, force=False):
+        loop = asyncio.get_running_loop()
 
         ha_list = await loop.run_in_executor(None, self._read_ha_shopping_list)
         original_ha_list_hash = await loop.run_in_executor(None, self._ha_shopping_list_hash)
@@ -243,6 +244,8 @@ class AlexaShoppingListSync:
         if self._is_syncing == True:
             return False
         self._is_syncing = True
+
+        result = False
 
         try:
             result = await self._do_sync(logger, force)
