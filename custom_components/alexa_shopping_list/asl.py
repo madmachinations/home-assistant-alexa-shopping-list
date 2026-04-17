@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# PATCHED 2026-04-17: Fixed NameError in _do_sync — loop was defined in sync()
+# but not passed to _do_sync(). Added loop as first parameter to _do_sync.
+# Bug reported upstream: https://github.com/madmachinations/home-assistant-alexa-shopping-list
+# Remove this comment if/when upstream fixes and you update via HACS.
 
 import websockets
 import json
@@ -184,7 +188,7 @@ class AlexaShoppingListSync:
         logger.debug(entry)
 
 
-    async def _do_sync(self, logger=None, force=False):
+    async def _do_sync(self, loop, logger=None, force=False):
 
         ha_list = await loop.run_in_executor(None, self._read_ha_shopping_list)
         original_ha_list_hash = await loop.run_in_executor(None, self._ha_shopping_list_hash)
@@ -243,9 +247,10 @@ class AlexaShoppingListSync:
         if self._is_syncing == True:
             return False
         self._is_syncing = True
+        result = False
 
         try:
-            result = await self._do_sync(logger, force)
+            result = await self._do_sync(loop, logger, force)
         except Exception as e:
             await self._debug_log_entry(logger, type(e))
             await self._debug_log_entry(logger, e)
@@ -254,4 +259,3 @@ class AlexaShoppingListSync:
 
         return result
     # ============================================================
-
