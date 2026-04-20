@@ -5,6 +5,7 @@ import websockets
 import json
 import signal
 import os
+import traceback
 from alexa import AlexaShoppingList
 import time
 
@@ -230,33 +231,34 @@ async def _route_command(command, arguments={}):
 
 async def _process_command(websocket, path):
     clients.add(websocket)
-    # try:
-    async for message in websocket:
-        # try:
+    try:
+        async for message in websocket:
+            response = {"result": None, "error": None}
 
-        data = json.loads(message)
-        command = data.get('command')
-        arguments = data.get('args')
+            try:
+                data = json.loads(message)
+                command = data.get('command')
+                arguments = data.get('args')
 
-        response = {"result": None, "error": None}
-        results = await _route_command(command, arguments)
+                results = await _route_command(command, arguments)
 
-        if results is not None and len(results) == 2:
-            response = {
-                "result": results[0],
-                "error": results[1]
-            }
-        else:
-            response['error'] = 'Unknown command'
+                if results is not None and len(results) == 2:
+                    response = {
+                        "result": results[0],
+                        "error": results[1]
+                    }
+                else:
+                    response['error'] = 'Unknown command'
 
-        # except json.JSONDecodeError:
-        #     response = {'error': 'Invalid JSON'}
-        # except:
-        #     response = {'error': 'Fatal exception'}
+            except json.JSONDecodeError:
+                response['error'] = 'Invalid JSON'
+            except Exception as e:
+                traceback.print_exc()
+                response['error'] = str(e)
 
-        await websocket.send(json.dumps(response))
-    # finally:
-    clients.remove(websocket)
+            await websocket.send(json.dumps(response))
+    finally:
+        clients.remove(websocket)
 
 # ============================================================
 # Start/Stop

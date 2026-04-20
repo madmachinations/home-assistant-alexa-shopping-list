@@ -181,13 +181,16 @@ class AlexaShoppingList:
             # Now let's scroll back to the top
             first = None
             while True:
-                list_items = list_container.find_elements(By.CLASS_NAME, 'item-title')
-                if not list_items or first == list_items[0]:
-                    # We've reached the top
+                try:
+                    list_items = list_container.find_elements(By.CLASS_NAME, 'item-title')
+                    if not list_items or first == list_items[0]:
+                        # We've reached the top
+                        break
+                    first = list_items[0]
+                    scroll_origin = ScrollOrigin.from_element(first)
+                    ActionChains(self.driver).scroll_from_origin(scroll_origin, 0, -1000).perform()
+                except StaleElementReferenceException:
                     break
-                first = list_items[0]
-                scroll_origin = ScrollOrigin.from_element(first)
-                ActionChains(self.driver).scroll_from_origin(scroll_origin, 0, -1000).perform()
 
         return found
 
