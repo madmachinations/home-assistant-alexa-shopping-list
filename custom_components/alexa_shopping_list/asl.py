@@ -9,6 +9,8 @@ import hashlib
 
 # ============================================================
 
+COMMAND_TIMEOUT = 180
+
 
 class AlexaShoppingListSync:
 
@@ -24,7 +26,7 @@ class AlexaShoppingListSync:
 
 
     async def _send_command(self, command, **kwargs):
-        async with websockets.connect(self.uri) as websocket:
+        async with websockets.connect(self.uri, ping_interval=None, open_timeout=10, close_timeout=5) as websocket:
             request = {
                 'command': command,
                 'args': {
@@ -32,7 +34,12 @@ class AlexaShoppingListSync:
                 }
             }
             await websocket.send(json.dumps(request))
-            response = await websocket.recv()
+            try:
+                response = await asyncio.wait_for(websocket.recv(), timeout=COMMAND_TIMEOUT)
+            except TimeoutError as exc:
+                raise TimeoutError(
+                    f"Timed out waiting for Alexa Shopping List server response to '{command}'"
+                ) from exc
             return json.loads(response)
     
 
@@ -186,6 +193,8 @@ class AlexaShoppingListSync:
 
     async def _do_sync(self, logger=None, force=False):
 
+        loop = asyncio.get_running_loop()
+
         ha_list = await loop.run_in_executor(None, self._read_ha_shopping_list)
         original_ha_list_hash = await loop.run_in_executor(None, self._ha_shopping_list_hash)
         
@@ -245,13 +254,12 @@ class AlexaShoppingListSync:
         self._is_syncing = True
 
         try:
-            result = await self._do_sync(logger, force)
+            return await self._do_sync(logger, force)
         except Exception as e:
-            await self._debug_log_entry(logger, type(e))
-            await self._debug_log_entry(logger, e)
+            if logger != None:
+                logger.error(f"Alexa Shopping List Sync Error: {e}", exc_info=True)
+            return False
         finally:
             self._is_syncing = False
-
-        return result
     # ============================================================
 
