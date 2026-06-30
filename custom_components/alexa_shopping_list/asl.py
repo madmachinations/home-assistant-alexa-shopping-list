@@ -6,6 +6,9 @@ import datetime
 import os
 import asyncio
 import hashlib
+import logging
+
+_LOGGER = logging.getLogger(__name__)
 
 # ============================================================
 
@@ -185,6 +188,7 @@ class AlexaShoppingListSync:
 
 
     async def _do_sync(self, logger=None, force=False):
+        loop = asyncio.get_running_loop()
 
         ha_list = await loop.run_in_executor(None, self._read_ha_shopping_list)
         original_ha_list_hash = await loop.run_in_executor(None, self._ha_shopping_list_hash)
@@ -244,9 +248,11 @@ class AlexaShoppingListSync:
             return False
         self._is_syncing = True
 
+        result = False
         try:
             result = await self._do_sync(logger, force)
         except Exception as e:
+            _LOGGER.error("Alexa Shopping List sync failed: %s", e)
             await self._debug_log_entry(logger, type(e))
             await self._debug_log_entry(logger, e)
         finally:
