@@ -15,6 +15,14 @@ CONF_SYNC_MINS = "sync_mins"
 SERVICE_SYNC = "sync_alexa_shopping_list"
 
 
+def _shopping_data(hass):
+    """ShoppingData: entry.runtime_data (HA >= 2026.10), else hass.data (older)."""
+    for e in hass.config_entries.async_entries("shopping_list"):
+        if getattr(e, "runtime_data", None) is not None:
+            return e.runtime_data
+    return hass.data["shopping_list"]
+
+
 async def async_setup_entry(hass, entry):
     """Set up platform from a ConfigEntry."""
     hass.data.setdefault(DOMAIN, {})
@@ -26,7 +34,7 @@ async def async_setup_entry(hass, entry):
             entry.data[CONF_PORT],
             entry.data[CONF_SYNC_MINS],
             hass.config.path(".shopping_list.json"),
-            hass.data["shopping_list"].async_load
+            _shopping_data(hass).async_load
         )
 
     except Exception as e:
