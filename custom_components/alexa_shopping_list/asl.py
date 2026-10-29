@@ -7,6 +7,10 @@ import os
 import asyncio
 import hashlib
 
+# The server drives a browser and can take a minute or more to answer a command,
+# during which it can't answer websocket keepalive pings
+COMMAND_TIMEOUT = 300
+
 # ============================================================
 
 
@@ -24,7 +28,7 @@ class AlexaShoppingListSync:
 
 
     async def _send_command(self, command, **kwargs):
-        async with websockets.connect(self.uri) as websocket:
+        async with websockets.connect(self.uri, ping_interval=None) as websocket:
             request = {
                 'command': command,
                 'args': {
@@ -32,7 +36,7 @@ class AlexaShoppingListSync:
                 }
             }
             await websocket.send(json.dumps(request))
-            response = await websocket.recv()
+            response = await asyncio.wait_for(websocket.recv(), timeout=COMMAND_TIMEOUT)
             return json.loads(response)
     
 
@@ -113,8 +117,10 @@ class AlexaShoppingListSync:
     async def _get_list(self, force = False):
         if self._cached_list_needs_updating() or force:
             response = await self._send_command("get_list")
-            if self._command_successful(response):
-                self._update_cached_list(self._command_result(response))
+            if self._command_successful(response) == False:
+                # Syncing against a list we couldn't read would overwrite the HA list
+                raise Exception("Unable to read Alexa shopping list: "+str(self._command_error(response)))
+            self._update_cached_list(self._command_result(response))
         return self._cached_list
     
 
